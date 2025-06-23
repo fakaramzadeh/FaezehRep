@@ -1,0 +1,1194 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "ADFFaezeh"
+		},
+		"LS_Azure Sql_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'LS_Azure Sql'"
+		},
+		"LS_Blob_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'LS_Blob'"
+		},
+		"LS_OnpermiseSql_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'LS_OnpermiseSql'"
+		},
+		"LS_Azure Sql_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "testserverfara.database.windows.net"
+		},
+		"LS_Azure Sql_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "Accounting"
+		},
+		"LS_Azure Sql_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "saadmin"
+		},
+		"LS_GoogleSheet_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://docs.google.com"
+		},
+		"LS_OnpermiseSql_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "Localhost"
+		},
+		"LS_OnpermiseSql_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "Accounting"
+		},
+		"LS_OnpermiseSql_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "sa"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_Azure Sql')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"server": "[parameters('LS_Azure Sql_properties_typeProperties_server')]",
+					"database": "[parameters('LS_Azure Sql_properties_typeProperties_database')]",
+					"encrypt": "optional",
+					"trustServerCertificate": false,
+					"authenticationType": "SQL",
+					"userName": "[parameters('LS_Azure Sql_properties_typeProperties_userName')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('LS_Azure Sql_password')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_Blob')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('LS_Blob_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_GoogleSheet')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "HttpServer",
+				"typeProperties": {
+					"url": "[parameters('LS_GoogleSheet_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": true,
+					"authenticationType": "Anonymous"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/integrationRuntime1')]",
+			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "SelfHosted",
+				"typeProperties": {}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_Azure_TblAcc')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_Azure Sql",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "Id",
+						"type": "bigint",
+						"precision": 19
+					},
+					{
+						"name": "TrDate",
+						"type": "date"
+					},
+					{
+						"name": "Title",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Deb",
+						"type": "money",
+						"precision": 19,
+						"scale": 4
+					},
+					{
+						"name": "Cred",
+						"type": "money",
+						"precision": 19,
+						"scale": 4
+					},
+					{
+						"name": "Balance",
+						"type": "money",
+						"precision": 19,
+						"scale": 4
+					},
+					{
+						"name": "Acc",
+						"type": "nvarchar"
+					},
+					{
+						"name": "TrDesc",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Who",
+						"type": "nvarchar"
+					},
+					{
+						"name": "YearDesc",
+						"type": "nvarchar"
+					},
+					{
+						"name": "SubCat",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Brand",
+						"type": "nvarchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "tblacc"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_Azure Sql')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_Azure_TblJoin')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_Azure Sql",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "TblJoin"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_Azure Sql')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_Azure_tblSheet')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_Azure Sql",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "tblSheet"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_Azure Sql')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_BLOBSheet')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_Blob",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "td.csv",
+						"container": "sheet"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_Blob')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_GoogleSheet')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_GoogleSheet",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "HttpServerLocation",
+						"relativeUrl": "/spreadsheets/d/10z4v45Rmc7V4qvaqGOoRpVUsBnGa-JQHhfIAjAsDe2Q/gviz/tq?tqx=out:csv&sheet=TdBankAccounts"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_GoogleSheet')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_OnpermiseSql')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "SqlServer",
+				"typeProperties": {
+					"server": "[parameters('LS_OnpermiseSql_properties_typeProperties_server')]",
+					"database": "[parameters('LS_OnpermiseSql_properties_typeProperties_database')]",
+					"encrypt": "optional",
+					"trustServerCertificate": false,
+					"authenticationType": "SQL",
+					"userName": "[parameters('LS_OnpermiseSql_properties_typeProperties_userName')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('LS_OnpermiseSql_password')]"
+					}
+				},
+				"connectVia": {
+					"referenceName": "integrationRuntime1",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/integrationRuntimes/integrationRuntime1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/TestGetmetadata')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Get Metadata1",
+						"type": "GetMetadata",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "DS_BLOBSheet",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"fieldList": [
+								"exists",
+								"columnCount",
+								"itemName",
+								"itemType",
+								"contentMD5",
+								"lastModified"
+							],
+							"storeSettings": {
+								"type": "AzureBlobStorageReadSettings",
+								"recursive": true,
+								"enablePartitionDiscovery": false
+							},
+							"formatSettings": {
+								"type": "DelimitedTextReadSettings"
+							}
+						}
+					},
+					{
+						"name": "If Condition1",
+						"type": "IfCondition",
+						"dependsOn": [
+							{
+								"activity": "Get Metadata1",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"expression": {
+								"value": "@equals(activity('Get Metadata1').output.exists, true )",
+								"type": "Expression"
+							},
+							"ifFalseActivities": [
+								{
+									"name": "Web1",
+									"type": "WebActivity",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"method": "POST",
+										"headers": {
+											"Content-Type": "application/json"
+										},
+										"url": "https://prod-24.northcentralus.logic.azure.com:443/workflows/87a71141684947a78bc72e1a7f5e0aea/triggers/When_a_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_a_HTTP_request_is_received%2Frun&sv=1.0&sig=YyY0b7-a-s5-63GYiQmezRhENWv897gHrD8n6fBm0gI",
+										"body": {
+											"value": "@json(concat(\n\n'{\n  \"MyTime\": \"',utcNow(),'\",\n  \"Mybody\": \"Test My Body\"\n}\n'\n))\n",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"ifTrueActivities": [
+								{
+									"name": "Stored procedure1",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[dbo].[usp_InsertFileMetadata]",
+										"storedProcedureParameters": {
+											"ColumnCount": {
+												"value": {
+													"value": "@activity('Get Metadata1').output.columnCount",
+													"type": "Expression"
+												},
+												"type": "Int32"
+											},
+											"ContentMD5": {
+												"value": {
+													"value": "@activity('Get Metadata1').output.contentMD5",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"ExistsFlag": {
+												"value": {
+													"value": "@activity('Get Metadata1').output.exists",
+													"type": "Expression"
+												},
+												"type": "Boolean"
+											},
+											"ItemName": {
+												"value": {
+													"value": "@activity('Get Metadata1').output.itemName",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"ItemType": {
+												"value": {
+													"value": "@activity('Get Metadata1').output.itemType",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"LastModified": {
+												"value": {
+													"value": "@activity('Get Metadata1').output.lastModified",
+													"type": "Expression"
+												},
+												"type": "Datetime"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "LS_Azure Sql",
+										"type": "LinkedServiceReference"
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-06-20T15:26:26Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/DS_BLOBSheet')]",
+				"[concat(variables('factoryId'), '/linkedServices/LS_Azure Sql')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_OnPermise_TblAcc')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_OnpermiseSql",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "SqlServerTable",
+				"schema": [
+					{
+						"name": "Id",
+						"type": "bigint",
+						"precision": 19
+					},
+					{
+						"name": "TrDate",
+						"type": "date"
+					},
+					{
+						"name": "Title",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Deb",
+						"type": "money",
+						"precision": 19,
+						"scale": 4
+					},
+					{
+						"name": "Cred",
+						"type": "money",
+						"precision": 19,
+						"scale": 4
+					},
+					{
+						"name": "Balance",
+						"type": "money",
+						"precision": 19,
+						"scale": 4
+					},
+					{
+						"name": "Acc",
+						"type": "nvarchar"
+					},
+					{
+						"name": "TrDesc",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Who",
+						"type": "nvarchar"
+					},
+					{
+						"name": "YearDesc",
+						"type": "nvarchar"
+					},
+					{
+						"name": "SubCat",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Brand",
+						"type": "nvarchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "tblacc"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_OnpermiseSql')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DF_BlobSheet2AzureSql')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "DS_BLOBSheet",
+								"type": "DatasetReference"
+							},
+							"name": "source1"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "DS_Azure_tblSheet",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "select1"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          Id as string,",
+						"          TrDate as string,",
+						"          Title as string,",
+						"          Deb as string,",
+						"          Cred as string,",
+						"          Balance as string,",
+						"          Acc as string,",
+						"          TrDesc as string,",
+						"          Who as string,",
+						"          YearDesc as string,",
+						"          SubCat as string,",
+						"          Brand as string,",
+						"          insert as string,",
+						"          Update as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> source1",
+						"source1 select(mapColumn(",
+						"          Id,",
+						"          TrDate,",
+						"          Title,",
+						"          Deb,",
+						"          Cred,",
+						"          Balance,",
+						"          Acc,",
+						"          TrDesc,",
+						"          Who,",
+						"          YearDesc,",
+						"          SubCat,",
+						"          Brand",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select1",
+						"select1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     recreate:true,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> sink1"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/DS_BLOBSheet')]",
+				"[concat(variables('factoryId'), '/datasets/DS_Azure_tblSheet')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DF_join')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "DS_Azure_tblSheet",
+								"type": "DatasetReference"
+							},
+							"name": "TblSheet"
+						},
+						{
+							"dataset": {
+								"referenceName": "DS_Azure_TblAcc",
+								"type": "DatasetReference"
+							},
+							"name": "TblAcc"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "DS_Azure_TblJoin",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "filter1"
+						},
+						{
+							"name": "derivedColumn1"
+						},
+						{
+							"name": "join1"
+						},
+						{
+							"name": "filter2"
+						},
+						{
+							"name": "select1"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          Id as string,",
+						"          TrDate as string,",
+						"          Title as string,",
+						"          Deb as string,",
+						"          Cred as string,",
+						"          Balance as string,",
+						"          Acc as string,",
+						"          TrDesc as string,",
+						"          Who as string,",
+						"          YearDesc as string,",
+						"          SubCat as string,",
+						"          Brand as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> TblSheet",
+						"source(output(",
+						"          Id as long,",
+						"          TrDate as date,",
+						"          Title as string,",
+						"          Deb as decimal(19,4),",
+						"          Cred as decimal(19,4),",
+						"          Balance as decimal(19,4),",
+						"          Acc as string,",
+						"          TrDesc as string,",
+						"          Who as string,",
+						"          YearDesc as string,",
+						"          SubCat as string,",
+						"          Brand as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> TblAcc",
+						"TblSheet filter(!isNull(Id)) ~> filter1",
+						"filter1 derive(id_Int = toInteger(replace(Id, ',', ''))) ~> derivedColumn1",
+						"derivedColumn1, TblAcc join(id_Int == TblAcc@Id,",
+						"     joinType:'outer',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join1",
+						"join1 filter(isNull(TblSheet@Id)||isNull(TblAcc@Id)) ~> filter2",
+						"filter2 select(mapColumn(",
+						"          Id_S = TblSheet@Id,",
+						"          TrDate_S = TblSheet@TrDate,",
+						"          Title_S = TblSheet@Title,",
+						"          Deb_S = TblSheet@Deb,",
+						"          Cred_S = TblSheet@Cred,",
+						"          Balance_S = TblSheet@Balance,",
+						"          Acc_S = TblSheet@Acc,",
+						"          TrDesc_S = TblSheet@TrDesc,",
+						"          Who_S = TblSheet@Who,",
+						"          YearDesc_S = TblSheet@YearDesc,",
+						"          SubCat_S = TblSheet@SubCat,",
+						"          Brand_S = TblSheet@Brand,",
+						"          id_S_Int = id_Int,",
+						"          Id_A = TblAcc@Id,",
+						"          TrDate_A = TblAcc@TrDate,",
+						"          Title_A = TblAcc@Title,",
+						"          Deb_A = TblAcc@Deb,",
+						"          Cred_A = TblAcc@Cred,",
+						"          Balance_A = TblAcc@Balance,",
+						"          Acc_A = TblAcc@Acc,",
+						"          TrDesc_A = TblAcc@TrDesc,",
+						"          Who_A = TblAcc@Who,",
+						"          YearDesc_A = TblAcc@YearDesc,",
+						"          SubCat_A = TblAcc@SubCat,",
+						"          Brand_A = TblAcc@Brand",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select1",
+						"select1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     recreate:true,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> sink1"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/DS_Azure_tblSheet')]",
+				"[concat(variables('factoryId'), '/datasets/DS_Azure_TblAcc')]",
+				"[concat(variables('factoryId'), '/datasets/DS_Azure_TblJoin')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/FinalPipeline')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Sheet2BLOB",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "HttpReadSettings",
+									"requestMethod": "GET"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobStorageWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DS_GoogleSheet",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "DS_BLOBSheet",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					},
+					{
+						"name": "BlobSheet2AzureSql",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "Sheet2BLOB",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "DF_BlobSheet2AzureSql",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"source1": {},
+									"sink1": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "Onpermise2AzureSql",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DS_OnPermise_TblAcc",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "DS_Azure_TblAcc",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					},
+					{
+						"name": "Data flow1",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "BlobSheet2AzureSql",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "Onpermise2AzureSql",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "DF_join",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"TblSheet": {},
+									"TblAcc": {},
+									"sink1": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "Fetch Procedures Script",
+						"type": "Lookup",
+						"dependsOn": [
+							{
+								"activity": "Drop Procedures in Azure",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"sqlReaderQuery": "SELECT p.name, m.definition PScript\nFROM sys.procedures p\nJOIN sys.sql_modules m ON p.object_id = m.object_id\nwhere  p.name in ('1_ test','2_insert')",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "DS_OnPermise_TblAcc",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "Drop Procedures in Azure",
+						"type": "Script",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [
+							{
+								"name": "Annotation",
+								"value": "در این مرحله 2 پروسجر را  دراپ میکنیم"
+							}
+						],
+						"linkedServiceName": {
+							"referenceName": "LS_Azure Sql",
+							"type": "LinkedServiceReference"
+						},
+						"typeProperties": {
+							"scripts": [
+								{
+									"type": "Query",
+									"text": "if OBJECT_ID('[dbo].[1_ test]') is not null drop procedure [dbo].[1_ test]\nif OBJECT_ID('[dbo].[2_insert]') is not null drop procedure [dbo].[2_insert]"
+								}
+							],
+							"scriptBlockExecutionTimeout": "02:00:00"
+						}
+					},
+					{
+						"name": "Proce1",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "Fetch Procedures Script",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "V_Proc1 Script",
+							"value": {
+								"value": "@activity('Fetch Procedures Script').output.value[0]['PScript']",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Proc2",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "Fetch Procedures Script",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "V_Proc2 Script",
+							"value": {
+								"value": "@activity('Fetch Procedures Script').output.value[1]['PScript']",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Execute Proc1",
+						"type": "Script",
+						"dependsOn": [
+							{
+								"activity": "Proce1",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"linkedServiceName": {
+							"referenceName": "LS_Azure Sql",
+							"type": "LinkedServiceReference"
+						},
+						"typeProperties": {
+							"scripts": [
+								{
+									"type": "Query",
+									"text": {
+										"value": "@variables('V_Proc1 Script')",
+										"type": "Expression"
+									}
+								}
+							],
+							"scriptBlockExecutionTimeout": "02:00:00"
+						}
+					},
+					{
+						"name": "Execute Proc2",
+						"type": "Script",
+						"dependsOn": [
+							{
+								"activity": "Proc2",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"linkedServiceName": {
+							"referenceName": "LS_Azure Sql",
+							"type": "LinkedServiceReference"
+						},
+						"typeProperties": {
+							"scripts": [
+								{
+									"type": "Query",
+									"text": {
+										"value": "@variables('V_Proc2 Script')",
+										"type": "Expression"
+									}
+								}
+							],
+							"scriptBlockExecutionTimeout": "02:00:00"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"variables": {
+					"V_Proc1 Script": {
+						"type": "String"
+					},
+					"V_Proc2 Script": {
+						"type": "String"
+					}
+				},
+				"annotations": [
+					"ایجاد بکاپ از کل دیتابیس آن پرمیس"
+				],
+				"lastPublishTime": "2025-06-23T17:16:14Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/DS_GoogleSheet')]",
+				"[concat(variables('factoryId'), '/datasets/DS_BLOBSheet')]",
+				"[concat(variables('factoryId'), '/dataflows/DF_BlobSheet2AzureSql')]",
+				"[concat(variables('factoryId'), '/datasets/DS_OnPermise_TblAcc')]",
+				"[concat(variables('factoryId'), '/datasets/DS_Azure_TblAcc')]",
+				"[concat(variables('factoryId'), '/dataflows/DF_join')]",
+				"[concat(variables('factoryId'), '/linkedServices/LS_Azure Sql')]"
+			]
+		}
+	]
+}
