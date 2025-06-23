@@ -1,0 +1,17 @@
+{
+	"name": "LS_Azure Sql",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureSqlDatabase",
+		"typeProperties": {
+			"server": "testserverfara.database.windows.net",
+			"database": "Accounting",
+			"encrypt": "optional",
+			"trustServerCertificate": false,
+			"authenticationType": "SQL",
+			"userName": "saadmin",
+			"encryptedCredential": "ew0KICAiVmVyc2lvbiI6ICIyMDE3LTExLTMwIiwNCiAgIlByb3RlY3Rpb25Nb2RlIjogIktleSIsDQogICJTZWNyZXRDb250ZW50VHlwZSI6ICJQbGFpbnRleHQiLA0KICAiQ3JlZGVudGlhbElkIjogIkRBVEFGQUNUT1JZQDY2M0RGOUU5LTg2OEMtNENCRi04MThCLTIzMDQ2Nzk3QUUwNF9iNmQyM2E2MS1mOGVlLTQ3ZGEtYjkwYS1hOGNiNGU4MDBmMjQiDQp9"
+		}
+	}
+}

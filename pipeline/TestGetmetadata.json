@@ -1,0 +1,156 @@
+{
+	"name": "TestGetmetadata",
+	"properties": {
+		"activities": [
+			{
+				"name": "Get Metadata1",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "DS_BLOBSheet",
+						"type": "DatasetReference"
+					},
+					"fieldList": [
+						"exists",
+						"columnCount",
+						"itemName",
+						"itemType",
+						"contentMD5",
+						"lastModified"
+					],
+					"storeSettings": {
+						"type": "AzureBlobStorageReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "DelimitedTextReadSettings"
+					}
+				}
+			},
+			{
+				"name": "If Condition1",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Get Metadata1",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(activity('Get Metadata1').output.exists, true )",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "Web1",
+							"type": "WebActivity",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"method": "POST",
+								"headers": {
+									"Content-Type": "application/json"
+								},
+								"url": "https://prod-24.northcentralus.logic.azure.com:443/workflows/87a71141684947a78bc72e1a7f5e0aea/triggers/When_a_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_a_HTTP_request_is_received%2Frun&sv=1.0&sig=YyY0b7-a-s5-63GYiQmezRhENWv897gHrD8n6fBm0gI",
+								"body": {
+									"value": "@json(concat(\n\n'{\n  \"MyTime\": \"',utcNow(),'\",\n  \"Mybody\": \"Test My Body\"\n}\n'\n))\n",
+									"type": "Expression"
+								}
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "Stored procedure1",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[dbo].[usp_InsertFileMetadata]",
+								"storedProcedureParameters": {
+									"ColumnCount": {
+										"value": {
+											"value": "@activity('Get Metadata1').output.columnCount",
+											"type": "Expression"
+										},
+										"type": "Int32"
+									},
+									"ContentMD5": {
+										"value": {
+											"value": "@activity('Get Metadata1').output.contentMD5",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"ExistsFlag": {
+										"value": {
+											"value": "@activity('Get Metadata1').output.exists",
+											"type": "Expression"
+										},
+										"type": "Boolean"
+									},
+									"ItemName": {
+										"value": {
+											"value": "@activity('Get Metadata1').output.itemName",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"ItemType": {
+										"value": {
+											"value": "@activity('Get Metadata1').output.itemType",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"LastModified": {
+										"value": {
+											"value": "@activity('Get Metadata1').output.lastModified",
+											"type": "Expression"
+										},
+										"type": "Datetime"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS_Azure Sql",
+								"type": "LinkedServiceReference"
+							}
+						}
+					]
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2025-06-20T15:26:26Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

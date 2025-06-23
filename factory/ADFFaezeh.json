@@ -1,0 +1,9 @@
+{
+	"name": "ADFFaezeh",
+	"location": "canadacentral",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "0f0064c9-f57d-45d4-af12-24661037e7d8",
+		"tenantId": "ca92071f-f342-40c7-8385-6997a60526cc"
+	}
+}

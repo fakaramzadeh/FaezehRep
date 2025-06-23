@@ -1,0 +1,136 @@
+{
+	"name": "DF_join",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DS_Azure_tblSheet",
+						"type": "DatasetReference"
+					},
+					"name": "TblSheet"
+				},
+				{
+					"dataset": {
+						"referenceName": "DS_Azure_TblAcc",
+						"type": "DatasetReference"
+					},
+					"name": "TblAcc"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "DS_Azure_TblJoin",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "filter1"
+				},
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "join1"
+				},
+				{
+					"name": "filter2"
+				},
+				{
+					"name": "select1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Id as string,",
+				"          TrDate as string,",
+				"          Title as string,",
+				"          Deb as string,",
+				"          Cred as string,",
+				"          Balance as string,",
+				"          Acc as string,",
+				"          TrDesc as string,",
+				"          Who as string,",
+				"          YearDesc as string,",
+				"          SubCat as string,",
+				"          Brand as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> TblSheet",
+				"source(output(",
+				"          Id as long,",
+				"          TrDate as date,",
+				"          Title as string,",
+				"          Deb as decimal(19,4),",
+				"          Cred as decimal(19,4),",
+				"          Balance as decimal(19,4),",
+				"          Acc as string,",
+				"          TrDesc as string,",
+				"          Who as string,",
+				"          YearDesc as string,",
+				"          SubCat as string,",
+				"          Brand as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> TblAcc",
+				"TblSheet filter(!isNull(Id)) ~> filter1",
+				"filter1 derive(id_Int = toInteger(replace(Id, ',', ''))) ~> derivedColumn1",
+				"derivedColumn1, TblAcc join(id_Int == TblAcc@Id,",
+				"     joinType:'outer',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join1",
+				"join1 filter(isNull(TblSheet@Id)||isNull(TblAcc@Id)) ~> filter2",
+				"filter2 select(mapColumn(",
+				"          Id_S = TblSheet@Id,",
+				"          TrDate_S = TblSheet@TrDate,",
+				"          Title_S = TblSheet@Title,",
+				"          Deb_S = TblSheet@Deb,",
+				"          Cred_S = TblSheet@Cred,",
+				"          Balance_S = TblSheet@Balance,",
+				"          Acc_S = TblSheet@Acc,",
+				"          TrDesc_S = TblSheet@TrDesc,",
+				"          Who_S = TblSheet@Who,",
+				"          YearDesc_S = TblSheet@YearDesc,",
+				"          SubCat_S = TblSheet@SubCat,",
+				"          Brand_S = TblSheet@Brand,",
+				"          id_S_Int = id_Int,",
+				"          Id_A = TblAcc@Id,",
+				"          TrDate_A = TblAcc@TrDate,",
+				"          Title_A = TblAcc@Title,",
+				"          Deb_A = TblAcc@Deb,",
+				"          Cred_A = TblAcc@Cred,",
+				"          Balance_A = TblAcc@Balance,",
+				"          Acc_A = TblAcc@Acc,",
+				"          TrDesc_A = TblAcc@TrDesc,",
+				"          Who_A = TblAcc@Who,",
+				"          YearDesc_A = TblAcc@YearDesc,",
+				"          SubCat_A = TblAcc@SubCat,",
+				"          Brand_A = TblAcc@Brand",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"select1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     recreate:true,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> sink1"
+			]
+		}
+	}
+}

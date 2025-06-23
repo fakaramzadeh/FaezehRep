@@ -1,0 +1,79 @@
+{
+	"name": "DF_BlobSheet2AzureSql",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DS_BLOBSheet",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "DS_Azure_tblSheet",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "select1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Id as string,",
+				"          TrDate as string,",
+				"          Title as string,",
+				"          Deb as string,",
+				"          Cred as string,",
+				"          Balance as string,",
+				"          Acc as string,",
+				"          TrDesc as string,",
+				"          Who as string,",
+				"          YearDesc as string,",
+				"          SubCat as string,",
+				"          Brand as string,",
+				"          insert as string,",
+				"          Update as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> source1",
+				"source1 select(mapColumn(",
+				"          Id,",
+				"          TrDate,",
+				"          Title,",
+				"          Deb,",
+				"          Cred,",
+				"          Balance,",
+				"          Acc,",
+				"          TrDesc,",
+				"          Who,",
+				"          YearDesc,",
+				"          SubCat,",
+				"          Brand",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"select1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     recreate:true,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> sink1"
+			]
+		}
+	}
+}

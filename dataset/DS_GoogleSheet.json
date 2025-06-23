@@ -1,0 +1,23 @@
+{
+	"name": "DS_GoogleSheet",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_GoogleSheet",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "HttpServerLocation",
+				"relativeUrl": "/spreadsheets/d/10z4v45Rmc7V4qvaqGOoRpVUsBnGa-JQHhfIAjAsDe2Q/gviz/tq?tqx=out:csv&sheet=TdBankAccounts"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
