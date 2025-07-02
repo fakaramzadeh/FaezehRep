@@ -232,7 +232,35 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/DS_BLOBSheet')]",
+			"name": "[concat(parameters('factoryName'), '/DS_BLOBSheet_Draft')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_Blob",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "Draft.csv",
+						"container": "sheet"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_Blob')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_BLOBSheet_Td')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -265,16 +293,15 @@
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"linkedServiceName": {
-					"referenceName": "LS_Blob",
+					"referenceName": "LS_GoogleSheet",
 					"type": "LinkedServiceReference"
 				},
 				"annotations": [],
 				"type": "DelimitedText",
 				"typeProperties": {
 					"location": {
-						"type": "AzureBlobStorageLocation",
-						"fileName": "Draf.csv",
-						"container": "sheet"
+						"type": "HttpServerLocation",
+						"relativeUrl": "/spreadsheets/d/10z4v45Rmc7V4qvaqGOoRpVUsBnGa-JQHhfIAjAsDe2Q/export?format=csv&gid=2057420440"
 					},
 					"columnDelimiter": ",",
 					"escapeChar": "\\",
@@ -284,7 +311,7 @@
 				"schema": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS_Blob')]"
+				"[concat(variables('factoryId'), '/linkedServices/LS_GoogleSheet')]"
 			]
 		},
 		{
@@ -343,6 +370,82 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/InsertNewRecordsFromDraft')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy data1",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "HttpReadSettings",
+									"requestMethod": "GET"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobStorageWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DS_GoogleSheet_Draf",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "DS_BLOBSheet_Draft",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/DS_GoogleSheet_Draf')]",
+				"[concat(variables('factoryId'), '/datasets/DS_BLOBSheet_Draft')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/TestGetmetadata')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -362,7 +465,7 @@
 						"userProperties": [],
 						"typeProperties": {
 							"dataset": {
-								"referenceName": "DS_BLOBSheet",
+								"referenceName": "DS_BLOBSheet_Td",
 								"type": "DatasetReference",
 								"parameters": {}
 							},
@@ -503,7 +606,7 @@
 				"lastPublishTime": "2025-06-20T15:26:26Z"
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/DS_BLOBSheet')]",
+				"[concat(variables('factoryId'), '/datasets/DS_BLOBSheet_Td')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS_Azure Sql')]"
 			]
 		},
@@ -594,10 +697,11 @@
 					"sources": [
 						{
 							"dataset": {
-								"referenceName": "DS_BLOBSheet",
+								"referenceName": "DS_BLOBSheet_Td",
 								"type": "DatasetReference"
 							},
-							"name": "source1"
+							"name": "source1",
+							"description": "Import data from DS_BLOBSheet_TD"
 						}
 					],
 					"sinks": [
@@ -665,7 +769,7 @@
 				}
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/DS_BLOBSheet')]",
+				"[concat(variables('factoryId'), '/datasets/DS_BLOBSheet_Td')]",
 				"[concat(variables('factoryId'), '/datasets/DS_Azure_tblSheet')]"
 			]
 		},
@@ -819,8 +923,10 @@
 			"properties": {
 				"activities": [
 					{
-						"name": "Sheet2BLOB",
+						"name": "Sheet_TDAccount2BLOB",
 						"type": "Copy",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
 						"dependsOn": [],
 						"policy": {
 							"timeout": "0.12:00:00",
@@ -871,7 +977,7 @@
 						],
 						"outputs": [
 							{
-								"referenceName": "DS_BLOBSheet",
+								"referenceName": "DS_BLOBSheet_Td",
 								"type": "DatasetReference",
 								"parameters": {}
 							}
@@ -880,9 +986,11 @@
 					{
 						"name": "BlobSheet2AzureSql",
 						"type": "ExecuteDataFlow",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
 						"dependsOn": [
 							{
-								"activity": "Sheet2BLOB",
+								"activity": "Sheet_TDAccount2BLOB",
 								"dependencyConditions": [
 									"Completed"
 								]
@@ -917,6 +1025,8 @@
 					{
 						"name": "Onpermise2AzureSql",
 						"type": "Copy",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
 						"dependsOn": [],
 						"policy": {
 							"timeout": "0.12:00:00",
@@ -967,6 +1077,8 @@
 					{
 						"name": "Data flow1",
 						"type": "ExecuteDataFlow",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
 						"dependsOn": [
 							{
 								"activity": "BlobSheet2AzureSql",
@@ -1011,6 +1123,8 @@
 					{
 						"name": "Fetch Procedures Script",
 						"type": "Lookup",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
 						"dependsOn": [
 							{
 								"activity": "Drop Procedures in Azure",
@@ -1045,6 +1159,8 @@
 					{
 						"name": "Drop Procedures in Azure",
 						"type": "Script",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
 						"dependsOn": [],
 						"policy": {
 							"timeout": "0.12:00:00",
@@ -1076,6 +1192,8 @@
 					{
 						"name": "Proce1",
 						"type": "SetVariable",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
 						"dependsOn": [
 							{
 								"activity": "Fetch Procedures Script",
@@ -1100,6 +1218,8 @@
 					{
 						"name": "Proc2",
 						"type": "SetVariable",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
 						"dependsOn": [
 							{
 								"activity": "Fetch Procedures Script",
@@ -1124,6 +1244,8 @@
 					{
 						"name": "Execute Proc1",
 						"type": "Script",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
 						"dependsOn": [
 							{
 								"activity": "Proce1",
@@ -1160,6 +1282,8 @@
 					{
 						"name": "Execute Proc2",
 						"type": "Script",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
 						"dependsOn": [
 							{
 								"activity": "Proc2",
@@ -1192,6 +1316,67 @@
 							],
 							"scriptBlockExecutionTimeout": "02:00:00"
 						}
+					},
+					{
+						"name": "Sheet_Draft2BLOB",
+						"type": "Copy",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "HttpReadSettings",
+									"requestMethod": "GET"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobStorageWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DS_GoogleSheet_Draf",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "DS_BLOBSheet_Draft",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
 					}
 				],
 				"policy": {
@@ -1212,12 +1397,14 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/DS_GoogleSheet_TdAccount')]",
-				"[concat(variables('factoryId'), '/datasets/DS_BLOBSheet')]",
+				"[concat(variables('factoryId'), '/datasets/DS_BLOBSheet_Td')]",
 				"[concat(variables('factoryId'), '/dataflows/DF_BlobSheet2AzureSql')]",
 				"[concat(variables('factoryId'), '/datasets/DS_OnPermise_TblAcc')]",
 				"[concat(variables('factoryId'), '/datasets/DS_Azure_TblAcc')]",
 				"[concat(variables('factoryId'), '/dataflows/DF_join')]",
-				"[concat(variables('factoryId'), '/linkedServices/LS_Azure Sql')]"
+				"[concat(variables('factoryId'), '/linkedServices/LS_Azure Sql')]",
+				"[concat(variables('factoryId'), '/datasets/DS_GoogleSheet_Draf')]",
+				"[concat(variables('factoryId'), '/datasets/DS_BLOBSheet_Draft')]"
 			]
 		}
 	]
