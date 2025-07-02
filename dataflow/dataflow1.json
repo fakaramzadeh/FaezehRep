@@ -1,0 +1,72 @@
+{
+	"name": "dataflow1",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DS_BLOBSheet_Draft",
+						"type": "DatasetReference"
+					},
+					"name": "BlobDraft"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "AzureSqlTable1",
+						"type": "DatasetReference"
+					},
+					"name": "azureSqltblDraft"
+				}
+			],
+			"transformations": [
+				{
+					"name": "select1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Id as string,",
+				"          TrDate as string,",
+				"          Title as string,",
+				"          Deb as string,",
+				"          Cred as string,",
+				"          Balance as string,",
+				"          Acc as string,",
+				"          TrDesc as string,",
+				"          Who as string,",
+				"          YearDesc as string,",
+				"          SubCat as string,",
+				"          Brand as string,",
+				"          Insert as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> BlobDraft",
+				"BlobDraft select(mapColumn(",
+				"          Id,",
+				"          TrDate,",
+				"          Title,",
+				"          Deb,",
+				"          Cred,",
+				"          Balance,",
+				"          Acc",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"select1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> azureSqltblDraft"
+			]
+		}
+	}
+}
