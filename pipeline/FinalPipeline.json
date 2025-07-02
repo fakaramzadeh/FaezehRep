@@ -48,7 +48,7 @@
 				},
 				"inputs": [
 					{
-						"referenceName": "DS_GoogleSheet",
+						"referenceName": "DS_GoogleSheet_TdAccount",
 						"type": "DatasetReference"
 					}
 				],

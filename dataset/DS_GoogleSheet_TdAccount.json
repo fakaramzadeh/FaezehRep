@@ -1,5 +1,5 @@
 {
-	"name": "DS_GoogleSheet",
+	"name": "DS_GoogleSheet_TdAccount",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "LS_GoogleSheet",

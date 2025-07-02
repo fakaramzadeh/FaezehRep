@@ -1,5 +1,5 @@
 {
-	"name": "DestinationDataset_a76",
+	"name": "DS_GoogleSheet_Draf",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "LS_Blob",
