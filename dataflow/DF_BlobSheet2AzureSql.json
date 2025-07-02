@@ -6,10 +6,11 @@
 			"sources": [
 				{
 					"dataset": {
-						"referenceName": "DS_BLOBSheet",
+						"referenceName": "DS_BLOBSheet_Td",
 						"type": "DatasetReference"
 					},
-					"name": "source1"
+					"name": "source1",
+					"description": "Import data from DS_BLOBSheet_TD"
 				}
 			],
 			"sinks": [

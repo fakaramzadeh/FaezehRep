@@ -3,8 +3,10 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "Sheet2BLOB",
+				"name": "Sheet_TDAccount2BLOB",
 				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [],
 				"policy": {
 					"timeout": "0.12:00:00",
@@ -54,7 +56,7 @@
 				],
 				"outputs": [
 					{
-						"referenceName": "DS_BLOBSheet",
+						"referenceName": "DS_BLOBSheet_Td",
 						"type": "DatasetReference"
 					}
 				]
@@ -62,9 +64,11 @@
 			{
 				"name": "BlobSheet2AzureSql",
 				"type": "ExecuteDataFlow",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
-						"activity": "Sheet2BLOB",
+						"activity": "Sheet_TDAccount2BLOB",
 						"dependencyConditions": [
 							"Completed"
 						]
@@ -93,6 +97,8 @@
 			{
 				"name": "Onpermise2AzureSql",
 				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [],
 				"policy": {
 					"timeout": "0.12:00:00",
@@ -141,6 +147,8 @@
 			{
 				"name": "Data flow1",
 				"type": "ExecuteDataFlow",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "BlobSheet2AzureSql",
@@ -178,6 +186,8 @@
 			{
 				"name": "Fetch Procedures Script",
 				"type": "Lookup",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "Drop Procedures in Azure",
@@ -211,6 +221,8 @@
 			{
 				"name": "Drop Procedures in Azure",
 				"type": "Script",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [],
 				"policy": {
 					"timeout": "0.12:00:00",
@@ -242,6 +254,8 @@
 			{
 				"name": "Proce1",
 				"type": "SetVariable",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "Fetch Procedures Script",
@@ -266,6 +280,8 @@
 			{
 				"name": "Proc2",
 				"type": "SetVariable",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "Fetch Procedures Script",
@@ -290,6 +306,8 @@
 			{
 				"name": "Execute Proc1",
 				"type": "Script",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "Proce1",
@@ -326,6 +344,8 @@
 			{
 				"name": "Execute Proc2",
 				"type": "Script",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "Proc2",
@@ -358,6 +378,65 @@
 					],
 					"scriptBlockExecutionTimeout": "02:00:00"
 				}
+			},
+			{
+				"name": "Sheet_Draft2BLOB",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "HttpReadSettings",
+							"requestMethod": "GET"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "DS_GoogleSheet_Draf",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DS_BLOBSheet_Draft",
+						"type": "DatasetReference"
+					}
+				]
 			}
 		],
 		"variables": {

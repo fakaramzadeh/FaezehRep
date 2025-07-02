@@ -16,7 +16,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataset": {
-						"referenceName": "DS_BLOBSheet",
+						"referenceName": "DS_BLOBSheet_Td",
 						"type": "DatasetReference"
 					},
 					"fieldList": [

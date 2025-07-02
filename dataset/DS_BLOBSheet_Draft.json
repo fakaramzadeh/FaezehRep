@@ -1,5 +1,5 @@
 {
-	"name": "DS_BLOBSheet_Td",
+	"name": "DS_BLOBSheet_Draft",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "LS_Blob",
@@ -10,7 +10,7 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobStorageLocation",
-				"fileName": "td.csv",
+				"fileName": "Draft.csv",
 				"container": "sheet"
 			},
 			"columnDelimiter": ",",
@@ -19,6 +19,5 @@
 			"quoteChar": "\""
 		},
 		"schema": []
-	},
-	"type": "Microsoft.DataFactory/factories/datasets"
+	}
 }

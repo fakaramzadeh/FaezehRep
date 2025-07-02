@@ -2,16 +2,15 @@
 	"name": "DS_GoogleSheet_Draf",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "LS_Blob",
+			"referenceName": "LS_GoogleSheet",
 			"type": "LinkedServiceReference"
 		},
 		"annotations": [],
 		"type": "DelimitedText",
 		"typeProperties": {
 			"location": {
-				"type": "AzureBlobStorageLocation",
-				"fileName": "Draf.csv",
-				"container": "sheet"
+				"type": "HttpServerLocation",
+				"relativeUrl": "/spreadsheets/d/10z4v45Rmc7V4qvaqGOoRpVUsBnGa-JQHhfIAjAsDe2Q/export?format=csv&gid=2057420440"
 			},
 			"columnDelimiter": ",",
 			"escapeChar": "\\",
