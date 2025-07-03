@@ -61,8 +61,6 @@
 					{
 						"name": "Sheet_TDAccount2BLOB",
 						"type": "Copy",
-						"state": "Inactive",
-						"onInactiveMarkAs": "Succeeded",
 						"dependsOn": [],
 						"policy": {
 							"timeout": "0.12:00:00",
@@ -122,8 +120,6 @@
 					{
 						"name": "BlobSheet2AzureSql",
 						"type": "ExecuteDataFlow",
-						"state": "Inactive",
-						"onInactiveMarkAs": "Succeeded",
 						"dependsOn": [
 							{
 								"activity": "Sheet_TDAccount2BLOB",
@@ -161,8 +157,6 @@
 					{
 						"name": "Onpermise2AzureSql",
 						"type": "Copy",
-						"state": "Inactive",
-						"onInactiveMarkAs": "Succeeded",
 						"dependsOn": [],
 						"policy": {
 							"timeout": "0.12:00:00",
@@ -213,8 +207,6 @@
 					{
 						"name": "Data flow1",
 						"type": "ExecuteDataFlow",
-						"state": "Inactive",
-						"onInactiveMarkAs": "Succeeded",
 						"dependsOn": [
 							{
 								"activity": "BlobSheet2AzureSql",
@@ -259,8 +251,6 @@
 					{
 						"name": "Fetch Procedures Script",
 						"type": "Lookup",
-						"state": "Inactive",
-						"onInactiveMarkAs": "Succeeded",
 						"dependsOn": [
 							{
 								"activity": "Drop Procedures in Azure",
@@ -295,8 +285,6 @@
 					{
 						"name": "Drop Procedures in Azure",
 						"type": "Script",
-						"state": "Inactive",
-						"onInactiveMarkAs": "Succeeded",
 						"dependsOn": [],
 						"policy": {
 							"timeout": "0.12:00:00",
@@ -328,8 +316,6 @@
 					{
 						"name": "Proce1",
 						"type": "SetVariable",
-						"state": "Inactive",
-						"onInactiveMarkAs": "Succeeded",
 						"dependsOn": [
 							{
 								"activity": "Fetch Procedures Script",
@@ -354,8 +340,6 @@
 					{
 						"name": "Proc2",
 						"type": "SetVariable",
-						"state": "Inactive",
-						"onInactiveMarkAs": "Succeeded",
 						"dependsOn": [
 							{
 								"activity": "Fetch Procedures Script",
@@ -380,8 +364,6 @@
 					{
 						"name": "Execute Proc1",
 						"type": "Script",
-						"state": "Inactive",
-						"onInactiveMarkAs": "Succeeded",
 						"dependsOn": [
 							{
 								"activity": "Proce1",
@@ -418,8 +400,6 @@
 					{
 						"name": "Execute Proc2",
 						"type": "Script",
-						"state": "Inactive",
-						"onInactiveMarkAs": "Succeeded",
 						"dependsOn": [
 							{
 								"activity": "Proc2",
@@ -456,8 +436,6 @@
 					{
 						"name": "Sheet_Draft2BLOB",
 						"type": "Copy",
-						"state": "Inactive",
-						"onInactiveMarkAs": "Succeeded",
 						"dependsOn": [],
 						"policy": {
 							"timeout": "0.12:00:00",
@@ -609,7 +587,7 @@
 						]
 					},
 					{
-						"name": "Transfer BlobDraft to AzureSql",
+						"name": "DF_BlobDraft2AzureSql",
 						"type": "ExecuteDataFlow",
 						"dependsOn": [
 							{
@@ -629,12 +607,12 @@
 						"userProperties": [],
 						"typeProperties": {
 							"dataflow": {
-								"referenceName": "DF_BlobSheet2AzureSql",
+								"referenceName": "DF_BlobDraft2AzureSql",
 								"type": "DataFlowReference",
 								"parameters": {},
 								"datasetParameters": {
-									"source1": {},
-									"sink1": {}
+									"BlobDraft": {},
+									"azureSqltblDraft": {}
 								}
 							},
 							"staging": {},
@@ -643,6 +621,60 @@
 								"computeType": "General"
 							},
 							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "Stored procedure1",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "DF_BlobDraft2AzureSql",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[1_Insert_fromDraft]"
+						},
+						"linkedServiceName": {
+							"referenceName": "LS_Azure Sql",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "Stored procedure2",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Stored procedure1",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[2_insert]"
+						},
+						"linkedServiceName": {
+							"referenceName": "LS_Azure Sql",
+							"type": "LinkedServiceReference"
 						}
 					}
 				],
@@ -654,7 +686,8 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/DS_GoogleSheet_Draf')]",
 				"[concat(variables('factoryId'), '/datasets/DS_BLOBSheet_Draft')]",
-				"[concat(variables('factoryId'), '/dataflows/DF_BlobSheet2AzureSql')]"
+				"[concat(variables('factoryId'), '/dataflows/DF_BlobDraft2AzureSql')]",
+				"[concat(variables('factoryId'), '/linkedServices/LS_Azure Sql')]"
 			]
 		},
 		{
@@ -1299,7 +1332,7 @@
 						"     ),",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true) ~> select1",
-						"select1 filter(!isNull(TrDate)) ~> filter1",
+						"select1 filter(!isNull(TrDate) || TrDate!='') ~> filter1",
 						"filter1 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     deletable:false,",
