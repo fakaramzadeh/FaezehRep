@@ -1,5 +1,5 @@
 {
-	"name": "AzureSqlTable1",
+	"name": "DS_Azure_tblDraft",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "LS_Azure Sql",
