@@ -60,7 +60,7 @@
 				]
 			},
 			{
-				"name": "Transfer BlobDraft to AzureSql",
+				"name": "DF_BlobDraft2AzureSql",
 				"type": "ExecuteDataFlow",
 				"dependsOn": [
 					{
@@ -80,7 +80,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "DF_BlobSheet2AzureSql",
+						"referenceName": "DF_BlobDraft2AzureSql",
 						"type": "DataFlowReference"
 					},
 					"compute": {
