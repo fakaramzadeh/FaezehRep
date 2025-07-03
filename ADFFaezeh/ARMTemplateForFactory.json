@@ -607,6 +607,43 @@
 								"parameters": {}
 							}
 						]
+					},
+					{
+						"name": "Transfer BlobDraft to AzureSql",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "Copy data1",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "DF_BlobSheet2AzureSql",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"source1": {},
+									"sink1": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
 					}
 				],
 				"policy": {
@@ -616,7 +653,8 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/DS_GoogleSheet_Draf')]",
-				"[concat(variables('factoryId'), '/datasets/DS_BLOBSheet_Draft')]"
+				"[concat(variables('factoryId'), '/datasets/DS_BLOBSheet_Draft')]",
+				"[concat(variables('factoryId'), '/dataflows/DF_BlobSheet2AzureSql')]"
 			]
 		},
 		{
@@ -876,6 +914,27 @@
 				"typeProperties": {
 					"schema": "dbo",
 					"table": "TblJoin"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_Azure Sql')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_Azure_tblDraft')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_Azure Sql",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "tblDraft"
 				}
 			},
 			"dependsOn": [
@@ -1177,6 +1236,88 @@
 				"typeProperties": {}
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DF_BlobDraft2AzureSql')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "DS_BLOBSheet_Draft",
+								"type": "DatasetReference"
+							},
+							"name": "BlobDraft"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "DS_Azure_tblDraft",
+								"type": "DatasetReference"
+							},
+							"name": "azureSqltblDraft"
+						}
+					],
+					"transformations": [
+						{
+							"name": "select1"
+						},
+						{
+							"name": "filter1"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          Id as string,",
+						"          TrDate as string,",
+						"          Title as string,",
+						"          Deb as string,",
+						"          Cred as string,",
+						"          Balance as string,",
+						"          Acc as string,",
+						"          TrDesc as string,",
+						"          Who as string,",
+						"          YearDesc as string,",
+						"          SubCat as string,",
+						"          Brand as string,",
+						"          Insert as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> BlobDraft",
+						"BlobDraft select(mapColumn(",
+						"          TrDate,",
+						"          Title,",
+						"          Deb,",
+						"          Cred,",
+						"          Balance,",
+						"          Acc",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select1",
+						"select1 filter(!isNull(TrDate)) ~> filter1",
+						"filter1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     recreate:true,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> azureSqltblDraft"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/DS_BLOBSheet_Draft')]",
+				"[concat(variables('factoryId'), '/datasets/DS_Azure_tblDraft')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/DF_BlobSheet2AzureSql')]",
