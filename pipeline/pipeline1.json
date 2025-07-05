@@ -1,0 +1,36 @@
+{
+	"name": "pipeline1",
+	"properties": {
+		"activities": [
+			{
+				"name": "SendToSheet",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/json"
+					},
+					"url": "https://prod-02.canadacentral.logic.azure.com:443/workflows/7a9ad17415e34457b0dc0c3fb46d8acb/triggers/When_a_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_a_HTTP_request_is_received%2Frun&sv=1.0&sig=k1ndwnApfvN_UjvQk-6s-ECT-rFmINmHDjP5NfNHR_k",
+					"body": {
+						"TrDate": "2025-07-04",
+						"Title": "GST QST",
+						"Deb": 0,
+						"Cred": 220.5,
+						"Balance": 5732.48,
+						"Acc": "CreditCard"
+					}
+				}
+			}
+		],
+		"annotations": []
+	}
+}
