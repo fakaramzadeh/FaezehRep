@@ -649,33 +649,6 @@
 							"referenceName": "LS_Azure Sql",
 							"type": "LinkedServiceReference"
 						}
-					},
-					{
-						"name": "Stored procedure2",
-						"type": "SqlServerStoredProcedure",
-						"dependsOn": [
-							{
-								"activity": "Stored procedure1",
-								"dependencyConditions": [
-									"Completed"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"storedProcedureName": "[[dbo].[2_insert]"
-						},
-						"linkedServiceName": {
-							"referenceName": "LS_Azure Sql",
-							"type": "LinkedServiceReference"
-						}
 					}
 				],
 				"policy": {
