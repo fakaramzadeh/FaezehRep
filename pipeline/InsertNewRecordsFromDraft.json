@@ -68,7 +68,7 @@
 					{
 						"activity": "Copy data1",
 						"dependencyConditions": [
-							"Completed"
+							"Succeeded"
 						]
 					}
 				],
@@ -100,7 +100,7 @@
 					{
 						"activity": "DF_BlobDraft2AzureSql",
 						"dependencyConditions": [
-							"Completed"
+							"Succeeded"
 						]
 					}
 				],
@@ -127,7 +127,7 @@
 					{
 						"activity": "Stored procedure1",
 						"dependencyConditions": [
-							"Skipped"
+							"Succeeded"
 						]
 					}
 				],
