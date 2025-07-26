@@ -22,7 +22,7 @@
 					},
 					"sink": {
 						"type": "SqlServerSink",
-						"preCopyScript": "Drop table TblAcc",
+						"preCopyScript": "if object_id('TblAcc') is not null \nbegin\n\ndeclare @tblname as nvarchar(50)=(select 'tblAcc_'+CONVERT (varchar(10),GETDATE(),120))\n\ndeclare @sql nvarchar(max)\nset @sql='\nif object_id(''['+@tblname+']'') is not null drop table ['+@tblname+']\nselect * into ['+@tblname+'] from tblAcc\n'\nexec(@sql)\ndrop table tblacc\n\n end",
 						"writeBehavior": "insert",
 						"sqlWriterUseTableLock": true,
 						"tableOption": "autoCreate"
