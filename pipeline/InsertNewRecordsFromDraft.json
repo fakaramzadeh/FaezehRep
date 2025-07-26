@@ -4,6 +4,7 @@
 		"activities": [
 			{
 				"name": "Copy data1",
+				"description": "از گوگل شیت به بلاب منتقل میکند",
 				"type": "Copy",
 				"dependsOn": [],
 				"policy": {
@@ -61,6 +62,7 @@
 			},
 			{
 				"name": "DF_BlobDraft2AzureSql",
+				"description": "از بلاک برداشته، پاکسازی کرده به اس کیو ال اژور جدول tblDraft\nمنتقل میکند",
 				"type": "ExecuteDataFlow",
 				"dependsOn": [
 					{
@@ -92,6 +94,7 @@
 			},
 			{
 				"name": "Stored procedure1",
+				"description": "پروسیجر نهایی را اجرا میکند",
 				"type": "SqlServerStoredProcedure",
 				"dependsOn": [
 					{
@@ -116,6 +119,61 @@
 					"referenceName": "LS_Azure Sql",
 					"type": "LinkedServiceReference"
 				}
+			},
+			{
+				"name": "Copy data1_copy1",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Stored procedure1",
+						"dependencyConditions": [
+							"Skipped"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlServerSink",
+						"preCopyScript": "if object_id('TblAcc') is not null \nbegin\n\ndeclare @tblname as nvarchar(50)=(select 'tblAcc_'+CONVERT (varchar(10),GETDATE(),120))\n\ndeclare @sql nvarchar(max)\nset @sql='\nif object_id(''['+@tblname+']'') is not null drop table ['+@tblname+']\nselect * into ['+@tblname+'] from tblAcc\n'\nexec(@sql)\ndrop table tblacc\n\n end",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": true,
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "DS_Azure_TblAcc",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DS_OnPermise_TblAcc",
+						"type": "DatasetReference"
+					}
+				]
 			}
 		],
 		"annotations": []
