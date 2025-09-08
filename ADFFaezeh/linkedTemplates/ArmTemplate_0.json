@@ -53,6 +53,48 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('factoryName'), '/pipeline1')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "SendToSheet",
+						"type": "WebActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "POST",
+							"headers": {
+								"Content-Type": "application/json"
+							},
+							"url": "https://prod-02.canadacentral.logic.azure.com:443/workflows/7a9ad17415e34457b0dc0c3fb46d8acb/triggers/When_a_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_a_HTTP_request_is_received%2Frun&sv=1.0&sig=k1ndwnApfvN_UjvQk-6s-ECT-rFmINmHDjP5NfNHR_k",
+							"body": {
+								"TrDate": "2025-07-04",
+								"Title": "GST QST",
+								"Deb": 0,
+								"Cred": 220.5,
+								"Balance": 5732.48,
+								"Acc": "CreditCard"
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/LS_Azure Sql')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
@@ -104,6 +146,16 @@
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/integrationRuntime1')]",
+			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "SelfHosted",
+				"typeProperties": {}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/integrationRuntime2')]",
 			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -941,617 +993,6 @@
 				"[concat(variables('factoryId'), '/datasets/DS_Azure_tblSheet')]",
 				"[concat(variables('factoryId'), '/datasets/DS_Azure_TblAcc')]",
 				"[concat(variables('factoryId'), '/datasets/DS_Azure_TblJoin')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/FinalPipeline')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "Sheet_TDAccount2BLOB",
-						"type": "Copy",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "DelimitedTextSource",
-								"storeSettings": {
-									"type": "HttpReadSettings",
-									"requestMethod": "GET"
-								},
-								"formatSettings": {
-									"type": "DelimitedTextReadSettings"
-								}
-							},
-							"sink": {
-								"type": "DelimitedTextSink",
-								"storeSettings": {
-									"type": "AzureBlobStorageWriteSettings"
-								},
-								"formatSettings": {
-									"type": "DelimitedTextWriteSettings",
-									"quoteAllText": true,
-									"fileExtension": ".txt"
-								}
-							},
-							"enableStaging": false,
-							"translator": {
-								"type": "TabularTranslator",
-								"typeConversion": true,
-								"typeConversionSettings": {
-									"allowDataTruncation": true,
-									"treatBooleanAsNumber": false
-								}
-							}
-						},
-						"inputs": [
-							{
-								"referenceName": "DS_GoogleSheet_TdAccount",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "DS_BLOBSheet_Td",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						]
-					},
-					{
-						"name": "BlobSheet2AzureSql",
-						"type": "ExecuteDataFlow",
-						"dependsOn": [
-							{
-								"activity": "Sheet_TDAccount2BLOB",
-								"dependencyConditions": [
-									"Completed"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataflow": {
-								"referenceName": "DF_BlobSheet2AzureSql",
-								"type": "DataFlowReference",
-								"parameters": {},
-								"datasetParameters": {
-									"source1": {},
-									"sink1": {}
-								}
-							},
-							"staging": {},
-							"compute": {
-								"coreCount": 8,
-								"computeType": "General"
-							},
-							"traceLevel": "Fine"
-						}
-					},
-					{
-						"name": "Onpermise2AzureSql",
-						"type": "Copy",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "SqlServerSource",
-								"queryTimeout": "02:00:00",
-								"partitionOption": "None"
-							},
-							"sink": {
-								"type": "AzureSqlSink",
-								"preCopyScript": "truncate table tblacc",
-								"writeBehavior": "insert",
-								"sqlWriterUseTableLock": false,
-								"disableMetricsCollection": false
-							},
-							"enableStaging": false,
-							"translator": {
-								"type": "TabularTranslator",
-								"typeConversion": true,
-								"typeConversionSettings": {
-									"allowDataTruncation": true,
-									"treatBooleanAsNumber": false
-								}
-							}
-						},
-						"inputs": [
-							{
-								"referenceName": "DS_OnPermise_TblAcc",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "DS_Azure_TblAcc",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						]
-					},
-					{
-						"name": "Data flow1",
-						"type": "ExecuteDataFlow",
-						"dependsOn": [
-							{
-								"activity": "BlobSheet2AzureSql",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							},
-							{
-								"activity": "Onpermise2AzureSql",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataflow": {
-								"referenceName": "DF_join",
-								"type": "DataFlowReference",
-								"parameters": {},
-								"datasetParameters": {
-									"TblSheet": {},
-									"TblAcc": {},
-									"sink1": {}
-								}
-							},
-							"staging": {},
-							"compute": {
-								"coreCount": 8,
-								"computeType": "General"
-							},
-							"traceLevel": "Fine"
-						}
-					},
-					{
-						"name": "Fetch Procedures Script",
-						"type": "Lookup",
-						"dependsOn": [
-							{
-								"activity": "Drop Procedures in Azure",
-								"dependencyConditions": [
-									"Completed"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "SqlServerSource",
-								"sqlReaderQuery": "SELECT p.name, m.definition PScript\nFROM sys.procedures p\nJOIN sys.sql_modules m ON p.object_id = m.object_id\nwhere  p.name in ('1_ test','2_insert')",
-								"queryTimeout": "02:00:00",
-								"partitionOption": "None"
-							},
-							"dataset": {
-								"referenceName": "DS_OnPermise_TblAcc",
-								"type": "DatasetReference",
-								"parameters": {}
-							},
-							"firstRowOnly": false
-						}
-					},
-					{
-						"name": "Drop Procedures in Azure",
-						"type": "Script",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [
-							{
-								"name": "Annotation",
-								"value": "در این مرحله 2 پروسجر را  دراپ میکنیم"
-							}
-						],
-						"linkedServiceName": {
-							"referenceName": "LS_Azure Sql",
-							"type": "LinkedServiceReference"
-						},
-						"typeProperties": {
-							"scripts": [
-								{
-									"type": "Query",
-									"text": "if OBJECT_ID('[dbo].[1_ test]') is not null drop procedure [dbo].[1_ test]\nif OBJECT_ID('[dbo].[2_insert]') is not null drop procedure [dbo].[2_insert]"
-								}
-							],
-							"scriptBlockExecutionTimeout": "02:00:00"
-						}
-					},
-					{
-						"name": "Proce1",
-						"type": "SetVariable",
-						"dependsOn": [
-							{
-								"activity": "Fetch Procedures Script",
-								"dependencyConditions": [
-									"Completed"
-								]
-							}
-						],
-						"policy": {
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "V_Proc1 Script",
-							"value": {
-								"value": "@activity('Fetch Procedures Script').output.value[0]['PScript']",
-								"type": "Expression"
-							}
-						}
-					},
-					{
-						"name": "Proc2",
-						"type": "SetVariable",
-						"dependsOn": [
-							{
-								"activity": "Fetch Procedures Script",
-								"dependencyConditions": [
-									"Completed"
-								]
-							}
-						],
-						"policy": {
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "V_Proc2 Script",
-							"value": {
-								"value": "@activity('Fetch Procedures Script').output.value[1]['PScript']",
-								"type": "Expression"
-							}
-						}
-					},
-					{
-						"name": "Execute Proc1",
-						"type": "Script",
-						"dependsOn": [
-							{
-								"activity": "Proce1",
-								"dependencyConditions": [
-									"Completed"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"linkedServiceName": {
-							"referenceName": "LS_Azure Sql",
-							"type": "LinkedServiceReference"
-						},
-						"typeProperties": {
-							"scripts": [
-								{
-									"type": "Query",
-									"text": {
-										"value": "@variables('V_Proc1 Script')",
-										"type": "Expression"
-									}
-								}
-							],
-							"scriptBlockExecutionTimeout": "02:00:00"
-						}
-					},
-					{
-						"name": "Execute Proc2",
-						"type": "Script",
-						"dependsOn": [
-							{
-								"activity": "Proc2",
-								"dependencyConditions": [
-									"Completed"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"linkedServiceName": {
-							"referenceName": "LS_Azure Sql",
-							"type": "LinkedServiceReference"
-						},
-						"typeProperties": {
-							"scripts": [
-								{
-									"type": "Query",
-									"text": {
-										"value": "@variables('V_Proc2 Script')",
-										"type": "Expression"
-									}
-								}
-							],
-							"scriptBlockExecutionTimeout": "02:00:00"
-						}
-					},
-					{
-						"name": "Sheet_Draft2BLOB",
-						"type": "Copy",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "DelimitedTextSource",
-								"storeSettings": {
-									"type": "HttpReadSettings",
-									"requestMethod": "GET"
-								},
-								"formatSettings": {
-									"type": "DelimitedTextReadSettings"
-								}
-							},
-							"sink": {
-								"type": "DelimitedTextSink",
-								"storeSettings": {
-									"type": "AzureBlobStorageWriteSettings"
-								},
-								"formatSettings": {
-									"type": "DelimitedTextWriteSettings",
-									"quoteAllText": true,
-									"fileExtension": ".txt"
-								}
-							},
-							"enableStaging": false,
-							"translator": {
-								"type": "TabularTranslator",
-								"typeConversion": true,
-								"typeConversionSettings": {
-									"allowDataTruncation": true,
-									"treatBooleanAsNumber": false
-								}
-							}
-						},
-						"inputs": [
-							{
-								"referenceName": "DS_GoogleSheet_Draf",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "DS_BLOBSheet_Draft",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						]
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"variables": {
-					"V_Proc1 Script": {
-						"type": "String"
-					},
-					"V_Proc2 Script": {
-						"type": "String"
-					}
-				},
-				"annotations": [
-					"ایجاد بکاپ از کل دیتابیس آن پرمیس"
-				],
-				"lastPublishTime": "2025-06-23T17:16:14Z"
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/DS_GoogleSheet_TdAccount')]",
-				"[concat(variables('factoryId'), '/datasets/DS_BLOBSheet_Td')]",
-				"[concat(variables('factoryId'), '/dataflows/DF_BlobSheet2AzureSql')]",
-				"[concat(variables('factoryId'), '/datasets/DS_OnPermise_TblAcc')]",
-				"[concat(variables('factoryId'), '/datasets/DS_Azure_TblAcc')]",
-				"[concat(variables('factoryId'), '/dataflows/DF_join')]",
-				"[concat(variables('factoryId'), '/linkedServices/LS_Azure Sql')]",
-				"[concat(variables('factoryId'), '/datasets/DS_GoogleSheet_Draf')]",
-				"[concat(variables('factoryId'), '/datasets/DS_BLOBSheet_Draft')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/InsertNewRecordsFromDraft')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "Copy data1",
-						"type": "Copy",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "DelimitedTextSource",
-								"storeSettings": {
-									"type": "HttpReadSettings",
-									"requestMethod": "GET"
-								},
-								"formatSettings": {
-									"type": "DelimitedTextReadSettings"
-								}
-							},
-							"sink": {
-								"type": "DelimitedTextSink",
-								"storeSettings": {
-									"type": "AzureBlobStorageWriteSettings"
-								},
-								"formatSettings": {
-									"type": "DelimitedTextWriteSettings",
-									"quoteAllText": true,
-									"fileExtension": ".txt"
-								}
-							},
-							"enableStaging": false,
-							"translator": {
-								"type": "TabularTranslator",
-								"typeConversion": true,
-								"typeConversionSettings": {
-									"allowDataTruncation": true,
-									"treatBooleanAsNumber": false
-								}
-							}
-						},
-						"inputs": [
-							{
-								"referenceName": "DS_GoogleSheet_Draf",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "DS_BLOBSheet_Draft",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						]
-					},
-					{
-						"name": "DF_BlobDraft2AzureSql",
-						"type": "ExecuteDataFlow",
-						"dependsOn": [
-							{
-								"activity": "Copy data1",
-								"dependencyConditions": [
-									"Completed"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataflow": {
-								"referenceName": "DF_BlobDraft2AzureSql",
-								"type": "DataFlowReference",
-								"parameters": {},
-								"datasetParameters": {
-									"BlobDraft": {},
-									"azureSqltblDraft": {}
-								}
-							},
-							"staging": {},
-							"compute": {
-								"coreCount": 8,
-								"computeType": "General"
-							},
-							"traceLevel": "Fine"
-						}
-					},
-					{
-						"name": "Stored procedure1",
-						"type": "SqlServerStoredProcedure",
-						"dependsOn": [
-							{
-								"activity": "DF_BlobDraft2AzureSql",
-								"dependencyConditions": [
-									"Completed"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"storedProcedureName": "[[dbo].[1_Insert_fromDraft]"
-						},
-						"linkedServiceName": {
-							"referenceName": "LS_Azure Sql",
-							"type": "LinkedServiceReference"
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/DS_GoogleSheet_Draf')]",
-				"[concat(variables('factoryId'), '/datasets/DS_BLOBSheet_Draft')]",
-				"[concat(variables('factoryId'), '/dataflows/DF_BlobDraft2AzureSql')]",
-				"[concat(variables('factoryId'), '/linkedServices/LS_Azure Sql')]"
 			]
 		}
 	]

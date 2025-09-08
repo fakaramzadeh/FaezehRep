@@ -529,7 +529,10 @@
 				"activities": [
 					{
 						"name": "Copy data1",
+						"description": "از گوگل شیت به بلاب منتقل میکند",
 						"type": "Copy",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
 						"dependsOn": [],
 						"policy": {
 							"timeout": "0.12:00:00",
@@ -588,12 +591,13 @@
 					},
 					{
 						"name": "DF_BlobDraft2AzureSql",
+						"description": "از بلاک برداشته، پاکسازی کرده به اس کیو ال اژور جدول tblDraft\nمنتقل میکند",
 						"type": "ExecuteDataFlow",
 						"dependsOn": [
 							{
 								"activity": "Copy data1",
 								"dependencyConditions": [
-									"Completed"
+									"Succeeded"
 								]
 							}
 						],
@@ -625,12 +629,15 @@
 					},
 					{
 						"name": "Stored procedure1",
+						"description": "پروسیجر نهایی را اجرا میکند",
 						"type": "SqlServerStoredProcedure",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
 						"dependsOn": [
 							{
 								"activity": "DF_BlobDraft2AzureSql",
 								"dependencyConditions": [
-									"Completed"
+									"Succeeded"
 								]
 							}
 						],
@@ -649,6 +656,65 @@
 							"referenceName": "LS_Azure Sql",
 							"type": "LinkedServiceReference"
 						}
+					},
+					{
+						"name": "Copy data1_copy1",
+						"type": "Copy",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [
+							{
+								"activity": "Stored procedure1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "SqlServerSink",
+								"preCopyScript": "if object_id('TblAcc') is not null \nbegin\n\ndeclare @tblname as nvarchar(50)=(select 'tblAcc_'+CONVERT (varchar(10),GETDATE(),120))\n\ndeclare @sql nvarchar(max)\nset @sql='\nif object_id(''['+@tblname+']'') is not null drop table ['+@tblname+']\nselect * into ['+@tblname+'] from tblAcc\n'\nexec(@sql)\ndrop table tblacc\n\n end",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": true,
+								"tableOption": "autoCreate"
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DS_Azure_TblAcc",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "DS_OnPermise_TblAcc",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
 					}
 				],
 				"policy": {
@@ -660,7 +726,9 @@
 				"[concat(variables('factoryId'), '/datasets/DS_GoogleSheet_Draf')]",
 				"[concat(variables('factoryId'), '/datasets/DS_BLOBSheet_Draft')]",
 				"[concat(variables('factoryId'), '/dataflows/DF_BlobDraft2AzureSql')]",
-				"[concat(variables('factoryId'), '/linkedServices/LS_Azure Sql')]"
+				"[concat(variables('factoryId'), '/linkedServices/LS_Azure Sql')]",
+				"[concat(variables('factoryId'), '/datasets/DS_Azure_TblAcc')]",
+				"[concat(variables('factoryId'), '/datasets/DS_OnPermise_TblAcc')]"
 			]
 		},
 		{
@@ -826,6 +894,115 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/DS_BLOBSheet_Td')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS_Azure Sql')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pipeline1')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "SendToSheet",
+						"type": "WebActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "POST",
+							"headers": {
+								"Content-Type": "application/json"
+							},
+							"url": "https://prod-02.canadacentral.logic.azure.com:443/workflows/7a9ad17415e34457b0dc0c3fb46d8acb/triggers/When_a_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_a_HTTP_request_is_received%2Frun&sv=1.0&sig=k1ndwnApfvN_UjvQk-6s-ECT-rFmINmHDjP5NfNHR_k",
+							"body": {
+								"TrDate": "2025-07-04",
+								"Title": "GST QST",
+								"Deb": 0,
+								"Cred": 220.5,
+								"Balance": 5732.48,
+								"Acc": "CreditCard"
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pipeline2')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy data1",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "SqlServerSink",
+								"preCopyScript": "if object_id('TblAcc') is not null \nbegin\n\ndeclare @tblname as nvarchar(50)=(select 'tblAcc_'+CONVERT (varchar(10),GETDATE(),120))\n\ndeclare @sql nvarchar(max)\nset @sql='\nif object_id(''['+@tblname+']'') is not null drop table ['+@tblname+']\nselect * into ['+@tblname+'] from tblAcc\n'\nexec(@sql)\ndrop table tblacc\n\n end",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": true,
+								"tableOption": "autoCreate"
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DS_Azure_TblAcc",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "DS_OnPermise_TblAcc",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/DS_Azure_TblAcc')]",
+				"[concat(variables('factoryId'), '/datasets/DS_OnPermise_TblAcc')]"
 			]
 		},
 		{
@@ -1235,6 +1412,16 @@
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/integrationRuntime1')]",
+			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "SelfHosted",
+				"typeProperties": {}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/integrationRuntime2')]",
 			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
 			"apiVersion": "2018-06-01",
 			"properties": {
