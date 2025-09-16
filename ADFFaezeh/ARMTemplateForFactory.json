@@ -531,8 +531,6 @@
 						"name": "Copy data1",
 						"description": "از گوگل شیت به بلاب منتقل میکند",
 						"type": "Copy",
-						"state": "Inactive",
-						"onInactiveMarkAs": "Succeeded",
 						"dependsOn": [],
 						"policy": {
 							"timeout": "0.12:00:00",
@@ -631,8 +629,6 @@
 						"name": "Stored procedure1",
 						"description": "پروسیجر نهایی را اجرا میکند",
 						"type": "SqlServerStoredProcedure",
-						"state": "Inactive",
-						"onInactiveMarkAs": "Succeeded",
 						"dependsOn": [
 							{
 								"activity": "DF_BlobDraft2AzureSql",
@@ -660,8 +656,6 @@
 					{
 						"name": "Copy data1_copy1",
 						"type": "Copy",
-						"state": "Inactive",
-						"onInactiveMarkAs": "Succeeded",
 						"dependsOn": [
 							{
 								"activity": "Stored procedure1",
