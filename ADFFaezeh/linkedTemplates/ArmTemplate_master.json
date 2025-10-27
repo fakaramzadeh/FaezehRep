@@ -15,10 +15,6 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'LS_Blob'"
 		},
-		"LS_OnpermiseSql_password": {
-			"type": "secureString",
-			"metadata": "Secure string for 'password' of 'LS_OnpermiseSql'"
-		},
 		"LS_Azure Sql_properties_typeProperties_server": {
 			"type": "string",
 			"defaultValue": "testserverfara.database.windows.net"
@@ -34,18 +30,6 @@
 		"LS_GoogleSheet_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://docs.google.com"
-		},
-		"LS_OnpermiseSql_properties_typeProperties_server": {
-			"type": "string",
-			"defaultValue": "Localhost"
-		},
-		"LS_OnpermiseSql_properties_typeProperties_database": {
-			"type": "string",
-			"defaultValue": "Accounting"
-		},
-		"LS_OnpermiseSql_properties_typeProperties_userName": {
-			"type": "string",
-			"defaultValue": "sa"
 		},
 		"containerUri": {
 			"type": "string",
@@ -80,9 +64,6 @@
 					"LS_Blob_connectionString": {
 						"value": "[parameters('LS_Blob_connectionString')]"
 					},
-					"LS_OnpermiseSql_password": {
-						"value": "[parameters('LS_OnpermiseSql_password')]"
-					},
 					"LS_Azure Sql_properties_typeProperties_server": {
 						"value": "[parameters('LS_Azure Sql_properties_typeProperties_server')]"
 					},
@@ -94,39 +75,10 @@
 					},
 					"LS_GoogleSheet_properties_typeProperties_url": {
 						"value": "[parameters('LS_GoogleSheet_properties_typeProperties_url')]"
-					},
-					"LS_OnpermiseSql_properties_typeProperties_server": {
-						"value": "[parameters('LS_OnpermiseSql_properties_typeProperties_server')]"
-					},
-					"LS_OnpermiseSql_properties_typeProperties_database": {
-						"value": "[parameters('LS_OnpermiseSql_properties_typeProperties_database')]"
-					},
-					"LS_OnpermiseSql_properties_typeProperties_userName": {
-						"value": "[parameters('LS_OnpermiseSql_properties_typeProperties_userName')]"
 					}
 				}
 			},
 			"dependsOn": []
-		},
-		{
-			"name": "ADFFaezeh_ArmTemplate_1",
-			"type": "Microsoft.Resources/deployments",
-			"apiVersion": "2024-03-01",
-			"properties": {
-				"mode": "incremental",
-				"templateLink": {
-					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_1.json', parameters('containerSasToken'))]",
-					"contentVersion": "1.0.0.0"
-				},
-				"parameters": {
-					"factoryName": {
-						"value": "[parameters('factoryName')]"
-					}
-				}
-			},
-			"dependsOn": [
-				"[resourceId('Microsoft.Resources/deployments', 'ADFFaezeh_ArmTemplate_0')]"
-			]
 		}
 	]
 }

@@ -11,9 +11,6 @@
 		"LS_Blob_connectionString": {
 			"value": ""
 		},
-		"LS_OnpermiseSql_password": {
-			"value": ""
-		},
 		"LS_Azure Sql_properties_typeProperties_server": {
 			"value": "testserverfara.database.windows.net"
 		},
@@ -25,15 +22,6 @@
 		},
 		"LS_GoogleSheet_properties_typeProperties_url": {
 			"value": "https://docs.google.com"
-		},
-		"LS_OnpermiseSql_properties_typeProperties_server": {
-			"value": "Localhost"
-		},
-		"LS_OnpermiseSql_properties_typeProperties_database": {
-			"value": "Accounting"
-		},
-		"LS_OnpermiseSql_properties_typeProperties_userName": {
-			"value": "sa"
 		},
 		"containerUri": {
 			"value": ""
